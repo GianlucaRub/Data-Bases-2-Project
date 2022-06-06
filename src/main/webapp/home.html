@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Home Page</title>
+    <link th:href="@{https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css}" th:rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<style>
+    .package-container{
+        width:70%;
+        margin-left:15%;
+        margin-right:15%;
+        background-color: #D3E0E0;
+        border-radius: 20px;
+    }
+    .rejected-container{
+        width:70%;
+        margin-left:15%;
+        margin-right:15%;
+        background-color: #EDB9B9;
+        border-radius: 20px;
+    }
+    .price{
+        font-size: 2em;
+        margin-right: 10px;
+    }
+    .price-card{
+        width:200px;
+    }
+    .rejected-selector{
+        width: 70%;
+        height: 50px;
+    }
+    .rejected-submit{
+        width: 20%;
+        height: 50px;
+    }
+</style>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Telco</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarText">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="buyservice">Buy</a>
+                </li>
+            </ul>
+            <div th:with="condition=${session != null && session.user != null}" th:remove="tag">
+                <div th:if="${condition}">
+                    <span class="navbar-text pr-2" th:if="${condition}" th:text="'Welcome back, ' + ${session.user.getUsername()} + '!'"></span>
+                    <a class="btn btn-secondary btn-sm" href="logout" role="button">Logout</a>
+                </div>
+                <div th:unless="${condition}">
+                    <a class="btn btn-secondary btn-sm" href="index.html" role="button">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div th:if="${rejectedOrders!=null}" class="rejected-container p-3 mt-5">
+    <h4>Rejected orders</h4>
+    <p>Some of your orders are in a REJECTED status. Select one of them in order to try your purchase again.</p>
+    <form th:action="confirmation" method="post">
+        <select class="rejected-selector" name="rejectedOrderId">
+            <option th:each="rejectedOrder: ${rejectedOrders}" th:value="${rejectedOrder.getOrderId()}" th:text="'Order ID: ' + ${rejectedOrder.getOrderId()} + ' - Creation Date: ' + ${rejectedOrder.getCreationDateTime().toGMTString()} + ' - Total Fee: ' + ${rejectedOrder.getTotalFee()}">
+            </option>
+        </select>
+        <input class="rejected-submit" type="submit" value="Try again">
+    </form>
+</div>
+
+
+<div th:each="package : ${servicePackages}">
+
+    <div class="container">
+        <div class="package-container p-3 mt-5">
+            <h4 th:text="${package.getName()}"></h4>
+            <h5>Services offered: </h5>
+            <table class="table w-100 table-striped table-dark">
+                <thead class="table-light">
+                <tr>
+                    <th rowspan="2">Service Name</th>
+                    <th colspan="3">Included</th>
+                    <th colspan="3">Additional costs</th>
+                </tr>
+                <tr>
+                    <th>SMS</th>
+                    <th>Minutes</th>
+                    <th>GB</th>
+                    <th>per SMS</th>
+                    <th>per minute</th>
+                    <th>per GB</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="service: ${package.getServices()}">
+                    <td th:text="${service.getServiceType()}"></td>
+                    <td th:text="${ (service.getIncludedSMS() != 0) ? service.getIncludedSMS() + ' SMS' : ''}"></td>
+                    <td th:text="${ (service.getIncludedMinutes() != 0) ? service.getIncludedMinutes() + ' min': ''}"></td>
+                    <td th:text="${ (service.getIncludedGB() != 0) ? service.getIncludedGB() + ' GB': ''}"></td>
+                    <td th:text="${ (service.getFeeSMS() != 0) ? service.getFeeSMS() + ' Euros': ''}"></td>
+                    <td th:text="${ (service.getFeeMinutes() != 0) ? service.getFeeMinutes() + ' Euros': ''}"></td>
+                    <td th:text="${ (service.getFeeGB() != 0) ? service.getFeeGB() + ' Euros' : ''}"></td>
+                </tr>
+                </tbody>
+            </table>
+            <h5>Plans:</h5>
+            <div class="row">
+                <div th:class="col-lg-3" th:each="period : ${package.getPeriods()}">
+                    <div class="card price-card">
+                        <div class="card-body">
+                            <span class="price" th:text="${period.getMonthlyFee()} + ' Euros'"></span><span> per month</span>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item" th:text="${period.getValidityPeriod()} + ' month(s)'" ></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
